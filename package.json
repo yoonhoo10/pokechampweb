@@ -1,0 +1,14 @@
+{
+  "name": "pokechampweb",
+  "version": "1.0.0",
+  "private": true,
+  "description": "포켓몬 챔피언스 파티 추천 웹 (client + server 통합 배포)",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "build": "npm --prefix client install --include=dev && npm --prefix server install --include=dev && npm --prefix client run build && npm --prefix server run etl",
+    "start": "npm --prefix server run start",
+    "postinstall": "echo 'root install 완료 (build 단계에서 client/server 설치)'"
+  }
+}

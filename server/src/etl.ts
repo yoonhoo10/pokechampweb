@@ -99,7 +99,7 @@ interface BattleRow {
 }
 interface BattleResp { season: string; rows: BattleRow[] }
 
-async function run() {
+export async function runEtl() {
   console.time('ETL');
   initSchema();
   seedStatic();
@@ -210,7 +210,11 @@ async function run() {
   console.log('ETL 완료.');
 }
 
-run().catch((e) => {
-  console.error('ETL 실패:', e);
-  process.exit(1);
-});
+// CLI로 직접 실행할 때만 수행 (import 시에는 실행 안 함)
+import { pathToFileURL } from 'node:url';
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  runEtl().catch((e) => {
+    console.error('ETL 실패:', e);
+    process.exit(1);
+  });
+}

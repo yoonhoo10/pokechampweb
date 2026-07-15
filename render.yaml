@@ -1,0 +1,16 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# 이 파일이 있으면 Render에서 "New +" → "Blueprint"로 저장소를 연결하면
+# 아래 설정대로 웹 서비스가 자동 생성됩니다.
+services:
+  - type: web
+    name: pokechampweb
+    runtime: node
+    plan: free
+    # 빌드 단계: 프론트/백엔드 의존성 설치 → 프론트 빌드 → ETL로 data.db 생성
+    buildCommand: npm run build
+    # 실행 단계: Express 서버 시작 (프론트 정적 파일도 같이 서빙)
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 24.18.0

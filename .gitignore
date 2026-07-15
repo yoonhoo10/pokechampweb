@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.log
+
+# 작업용 캐시 DB (ETL로 재생성 가능, 영구 미러 금지)
+server/data.db
+server/data.db-*
