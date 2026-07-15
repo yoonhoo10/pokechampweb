@@ -33,6 +33,47 @@ export function getTypeChart() {
   return typeChart;
 }
 
+/**
+ * 색/무늬만 다른 장식 전용 폼(트리미앙·비비용·마휘핑·플라제스 등) 통합용.
+ * 한 base_name 아래 모든 폼이 타입/종족값/특성까지 완전히 동일하면 "장식 폼"으로 간주하고,
+ * 선택 화면 목록에서는 대표폼 1개만 노출한다.
+ * (추천 로직은 이미 base_name 단위라 별도 처리 불필요)
+ */
+const cosmeticRepByBase: Map<string, string> = (() => {
+  const forms = db
+    .prepare(
+      `SELECT saved_name, base_name, title, form_label, type1, type2, hp, atk, def, spa, spd, spe
+       FROM pokemon_forms`
+    )
+    .all() as (PokemonForm & { title: string | null })[];
+
+  // saved_name -> 정렬된 특성 시그니처
+  const abilitySig = new Map<string, string[]>();
+  for (const r of db.prepare(`SELECT saved_name, ability_name FROM pokemon_abilities`).all() as {
+    saved_name: string; ability_name: string;
+  }[]) {
+    (abilitySig.get(r.saved_name) ?? abilitySig.set(r.saved_name, []).get(r.saved_name)!).push(r.ability_name);
+  }
+  const sig = (f: (typeof forms)[number]) =>
+    [f.type1, f.type2, f.hp, f.atk, f.def, f.spa, f.spd, f.spe]
+      .concat((abilitySig.get(f.saved_name) ?? []).slice().sort())
+      .join('|');
+
+  const byBase = new Map<string, (typeof forms)[number][]>();
+  for (const f of forms) (byBase.get(f.base_name) ?? byBase.set(f.base_name, []).get(f.base_name)!).push(f);
+
+  const rep = new Map<string, string>();
+  for (const [base, group] of byBase) {
+    if (group.length < 2) continue;
+    if (new Set(group.map(sig)).size !== 1) continue; // 폼마다 스펙이 다르면 장식 폼 아님
+    // 대표폼: 기본형(title===base_name) > form_label 없는 것 > 첫 번째
+    const chosen =
+      group.find((f) => f.title === base) ?? group.find((f) => !f.form_label) ?? group[0];
+    rep.set(base, chosen.saved_name);
+  }
+  return rep;
+})();
+
 export function getForm(savedName: string): FormWithAbilities | null {
   const form = qForm.get(savedName) as PokemonForm | undefined;
   if (!form) return null;
@@ -60,8 +101,17 @@ export interface ListItem {
 
 export function listForms(): ListItem[] {
   const rows = qList.all() as ListItem[];
-  for (const r of rows) r.name_ko = formKo(r.base_name, r.form_label);
-  return rows;
+  const out: ListItem[] = [];
+  for (const r of rows) {
+    const rep = cosmeticRepByBase.get(r.base_name);
+    if (rep) {
+      if (r.saved_name !== rep) continue; // 장식 폼은 대표폼만 노출
+      r.form_label = null; // 무늬/색 라벨 제거 → 이름은 종족명만 (예: "비비용")
+    }
+    r.name_ko = formKo(r.base_name, r.form_label);
+    out.push(r);
+  }
+  return out;
 }
 
 /** 모든 폼의 요약(추천 후보 풀). 특성 포함 여부 옵션 */

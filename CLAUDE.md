@@ -13,9 +13,10 @@
 
 | 영역 | 선택 |
 |---|---|
-| 프론트엔드 | React (SPA) |
-| 백엔드 | Node.js + Express (TypeScript 권장, 프론트와 언어 통일) |
-| DB | SQLite (파일 기반, `better-sqlite3` 권장) |
+| 프론트엔드 | React (SPA), Vite, TypeScript |
+| 백엔드 | Node.js + Express + TypeScript (tsx로 실행, 별도 빌드 없음) |
+| DB | SQLite (파일 기반). Node 내장 `node:sqlite`의 `DatabaseSync` 사용 (실행 시 `--experimental-sqlite` 플래그, Node ≥ 22.5) |
+| 배포 | Render 단독 배포 (`render.yaml`). 서버가 빌드된 클라이언트(`client/dist`)를 정적 서빙 + `/api/*` 제공 |
 
 ---
 
@@ -27,7 +28,8 @@
 
 - `GET /api` 또는 `/api/index` — 전체 포켓몬 인덱스 (= 화이트리스트 역할, 챔피언스에 실제 존재하는 포켓몬만 여기 나옴)
 - `GET /api/metadata/:base_name` — 폼별 종족값/타입/특성 (예: `/api/metadata/tauros`)
-- `GET /api/battle/:format/:saved_name?season=...` — 시즌별 사용률 데이터 (move/item/ability/nature/spread/teammate 카테고리, rank+percentage)
+- `GET /api/battle/:format/:saved_name?season=...` — 시즌별 사용률 데이터 (rank+percentage)
+  - ⚠️ API 실제 category 이름은 스키마와 달라 ETL에서 매핑함: `held_item→item`, `stat_alignment→nature`, `stat_points→spread` (`move`/`ability`/`teammate`는 동일). `nature`는 `stat_up`/`stat_down`을, `spread`는 `*_points` 필드를 조합해 문자열로 저장.
 
 **API 이용약관 (반드시 준수)**
 - 캐싱은 허용되나 **영구 미러/아카이브 금지** → 로컬 DB는 "작업용 캐시"로 취급, 주기적 재수집 스크립트 전제로 설계
@@ -106,12 +108,24 @@ CREATE TABLE move_tags (
   tag TEXT NOT NULL,
   PRIMARY KEY (move_name, tag)
 );
+
+-- 영어 -> 한국어 공식 이름 매핑 (작업용 캐시, PokeAPI + 정적 seed)
+CREATE TABLE name_i18n (
+  category TEXT NOT NULL,   -- pokemon / move / ability / item / nature / type / form_label
+  en TEXT NOT NULL,         -- 데이터에 저장된 영어 키
+  ko TEXT NOT NULL,
+  PRIMARY KEY (category, en)
+);
 ```
 
 **설계 원칙**
 - spread(노력치)는 문자열 그대로 저장 (파싱은 MVP 이후 과제, 컬럼 순서는 HP/Atk/Def/SpA/SpD/Spe로 추정되나 실제 API 응답으로 재확인 필요)
 - 시즌은 최신 1개만 유지, 갱신 시 `battle_usage_rows`를 통째로 지우고 다시 채우는 방식
 - 역할군(스위퍼/벽/서포터) 태그, 실질 스피드 계산 등은 DB에 저장하지 않고 서비스 레이어에서 요청 시 계산
+- **장식 전용 폼 통합**: 색/무늬만 다른 폼(트리미앙·비비용·마휘핑·플라제스 등)은 DB에 개별 행으로 그대로 두되, **선택 화면 목록에서만 대표폼 1개로 접어서** 노출한다. DB를 건드리지 않으므로 재수집(ETL) 후에도 유지됨.
+  - 판별: 한 `base_name`의 모든 폼이 타입/종족값/특성까지 완전히 동일하면 "장식 폼"으로 간주 (하드코딩 목록 아님, 데이터 기반 자동 감지 — `repo.ts`의 `cosmeticRepByBase`)
+  - 대표폼: 기본형(`title === base_name`) > `form_label` 없는 것 > 첫 번째. 목록에서는 무늬 라벨을 떼고 종족명만 표시(예: "비비용")
+  - 추천 로직은 이미 `base_name` 단위로 후보를 관리하므로 별도 처리 불필요
 
 ---
 
@@ -123,6 +137,13 @@ CREATE TABLE move_tags (
 4. 위 과정 실패 시 재시도 로직 필요 (saved_name에 공백/특수문자 있으므로 URL 인코딩 필수)
 5. `type_chart`, `move_tags`는 정적 JSON에서 1회 seed
 6. 재수집 스크립트는 주기 실행 가능하도록 idempotent하게 작성 (기존 데이터 삭제 후 재삽입)
+7. ETL 완료 직후 **한국어 이름 매핑 수집**(`runI18n`) 실행 → `name_i18n` 채움. `npm run i18n`로 단독 실행도 가능 (데이터가 채워진 뒤여야 함)
+
+### 한국어 이름(i18n) 매핑
+- 자동 번역이 아니라 **PokeAPI 공식 로컬라이제이션(ko)**을 1:1 매칭 (`i18n.ts`). 포켓몬 종족명/기술/특성/아이템/성격 base word를 슬러그로 변환해 조회
+- 타입 18종·능력치 약어·확실한 폼 라벨은 정적 seed(`data/staticI18n.ts`), PokeAPI 매칭 실패 건은 수동 등록(`data/nameOverrides.ts`)
+- 성격은 base word만 매칭하고 접미사(+특공/-스피드)는 `STAT_KO`로 재조립. 미등록 장식 폼 라벨은 임의 번역하지 않고 영어 라벨을 괄호로 유지
+- `name_i18n`도 작업용 캐시(영구 미러 아님) — 갱신 시 통째로 지우고 재삽입
 
 ---
 
@@ -160,7 +181,7 @@ CREATE TABLE move_tags (
 ## 화면 흐름 (User Flow)
 
 ```
-[포켓몬 선택 화면] → 코어 포켓몬 1~3마리 선택
+[포켓몬 선택 화면] → 코어 포켓몬 1~3마리 선택 (색/무늬만 다른 장식 폼은 대표 1마리로 통합 표시, 이름·한국어 검색 지원)
    ↓
 [파티 추천 결과 화면] → 파티 옵션 2~3개 카드 형태로 비교
    ↓
