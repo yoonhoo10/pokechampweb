@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://championsbattledata.com/api/index\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const j=JSON.parse\\(d\\);console.log\\('TOP KEYS:',Object.keys\\(j\\)\\);for\\(const k of Object.keys\\(j\\)\\){const v=j[k];if\\(Array.isArray\\(v\\)\\){console.log\\(k,'= array len',v.length,'| sample:',JSON.stringify\\(v.slice\\(0,2\\)\\)\\);}else if\\(typeof v==='object'\\){console.log\\(k,'= object keys',Object.keys\\(v\\).slice\\(0,10\\)\\);}else{console.log\\(k,'=',v\\);}}}\\)\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const j=JSON.parse\\(d\\);const p=j.pokemon;console.log\\('pokemon type:',Array.isArray\\(p\\)?'array len '+p.length:typeof p\\);if\\(Array.isArray\\(p\\)\\){console.log\\(JSON.stringify\\(p.slice\\(0,3\\),null,2\\)\\);}else{const ks=Object.keys\\(p\\);console.log\\('keys sample:',ks.slice\\(0,5\\)\\);console.log\\(JSON.stringify\\(p[ks[0]],null,2\\)\\);}}\\)\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const j=JSON.parse\\(d\\);console.log\\(JSON.stringify\\(j.pokemon[0].summary,null,2\\)\\);}\\)\")",
+      "Bash(curl -s \"https://championsbattledata.com/api/metadata/Tauros\")",
+      "Bash(curl -s \"https://championsbattledata.com/api/battle/Singles/Abomasnow?season=Current\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const j=JSON.parse\\(d\\);const cats={};for\\(const r of j.rows\\){\\(cats[r.category]=cats[r.category]||[]\\).push\\(r\\);}console.log\\('categories:',Object.keys\\(cats\\)\\);for\\(const c of Object.keys\\(cats\\)\\){console.log\\('--- '+c+' \\(top2\\) ---'\\);console.log\\(JSON.stringify\\(cats[c].slice\\(0,2\\)\\)\\);}}\\)\")",
+      "Bash(curl -s \"https://championsbattledata.com/api/battle/Singles/Tauros?season=Current\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{try{const j=JSON.parse\\(d\\);console.log\\('season:',j.season,'rows:',j.rows.length,'first name:',j.rows[0]&&j.rows[0].name\\);}catch\\(e\\){console.log\\('ERR/empty:',d.slice\\(0,200\\)\\);}}\\)\")",
+      "Bash(curl -s \"https://championsbattledata.com/api/battle/Singles/Paldean%20Tauros%20Aqua%20Breed?season=Current\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const j=JSON.parse\\(d\\);const t=j.pokemon.find\\(p=>p.name==='Tauros'\\);console.log\\('Tauros battleDataCsvs:',JSON.stringify\\(t.battleDataCsvs.map\\(c=>c.path\\)\\)\\);console.log\\('total base pokemon:',j.pokemon.length\\);}\\)\")",
+      "Bash(curl -s -o /dev/null -w \"Abomasnow.png -> HTTP %{http_code} \\(%{content_type}\\)\\\\n\" \"https://championsbattledata.com/pokemon_champions_assets/pokemon/Abomasnow.png\")",
+      "Bash(curl -s -o /dev/null -w \"Paldean Tauros Aqua Breed.png -> HTTP %{http_code} \\(%{content_type}\\)\\\\n\" \"https://championsbattledata.com/pokemon_champions_assets/pokemon/Paldean%20Tauros%20Aqua%20Breed.png\")",
+      "Bash(npm install *)",
+      "Bash(node --experimental-sqlite -e \"const {DatabaseSync}=require\\('node:sqlite'\\);const db=new DatabaseSync\\(':memory:'\\);db.exec\\('CREATE TABLE t\\(a\\)'\\);db.prepare\\('INSERT INTO t VALUES\\(?\\)'\\).run\\(5\\);console.log\\('node:sqlite OK', db.prepare\\('SELECT a FROM t'\\).get\\(\\)\\);\")",
+      "Bash(node --experimental-sqlite -e ' *)"
+    ]
+  }
+}
