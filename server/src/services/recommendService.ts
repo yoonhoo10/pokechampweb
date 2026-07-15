@@ -8,6 +8,7 @@ import {
 } from './typeService.js';
 import { inferRoles, diversityScore } from './roleService.js';
 import { buildPlan } from './planService.js';
+import { koType } from './i18nRepo.js';
 
 const TEAM_SIZE = 6;
 
@@ -195,7 +196,7 @@ export function recommendParties(coreSavedNames: string[]): RecommendResult {
     const remaining = topThreats(weaknessProfile, 2);
     const coverageNote =
       remaining.length > 0
-        ? `주의 타입: ${remaining.slice(0, 4).join(', ')} (2마리 이상이 약점)`
+        ? `주의 타입: ${remaining.slice(0, 4).map(koType).join(', ')} (2마리 이상이 약점)`
         : '2마리 이상이 공유하는 뚜렷한 약점이 없습니다. 상성 밸런스가 안정적입니다.';
 
     options.push({

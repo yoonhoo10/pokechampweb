@@ -1,6 +1,7 @@
 /** DB 접근 계층 */
 import { db } from '../db.js';
 import type { PokemonForm, UsageRow } from '../types.js';
+import { formKo, usageKo } from './i18nRepo.js';
 
 export interface FormWithAbilities extends PokemonForm {
   abilities: string[];
@@ -36,11 +37,13 @@ export function getForm(savedName: string): FormWithAbilities | null {
   const form = qForm.get(savedName) as PokemonForm | undefined;
   if (!form) return null;
   const abilities = (qAbilities.all(savedName) as { ability_name: string }[]).map((r) => r.ability_name);
-  return { ...form, abilities };
+  return { ...form, abilities, name_ko: formKo(form.base_name, form.form_label) };
 }
 
 export function getUsage(savedName: string, category: string): UsageRow[] {
-  return qUsage.all(savedName, category) as UsageRow[];
+  const rows = qUsage.all(savedName, category) as UsageRow[];
+  for (const r of rows) r.name_ko = usageKo(category, r.name);
+  return rows;
 }
 
 export interface ListItem {
@@ -52,10 +55,13 @@ export interface ListItem {
   type2: string | null;
   total: number;
   image_path: string | null;
+  name_ko: string;
 }
 
 export function listForms(): ListItem[] {
-  return qList.all() as ListItem[];
+  const rows = qList.all() as ListItem[];
+  for (const r of rows) r.name_ko = formKo(r.base_name, r.form_label);
+  return rows;
 }
 
 /** 모든 폼의 요약(추천 후보 풀). 특성 포함 여부 옵션 */

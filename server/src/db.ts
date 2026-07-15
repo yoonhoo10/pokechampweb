@@ -69,6 +69,14 @@ export function initSchema(): void {
       tag TEXT NOT NULL,
       PRIMARY KEY (move_name, tag)
     );
+
+    -- 영어 -> 한국어 공식 이름 매핑 (작업용 캐시, PokeAPI + 정적 seed)
+    CREATE TABLE IF NOT EXISTS name_i18n (
+      category TEXT NOT NULL,   -- pokemon / move / ability / item / nature / type / form_label
+      en TEXT NOT NULL,         -- 데이터에 저장된 영어 키
+      ko TEXT NOT NULL,
+      PRIMARY KEY (category, en)
+    );
   `);
 }
 

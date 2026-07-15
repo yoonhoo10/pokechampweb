@@ -18,7 +18,7 @@ function tagsOf(member: RecommendedMember): Set<string> {
 }
 
 function displayName(member: RecommendedMember): string {
-  return member.form.title || member.form.saved_name;
+  return member.form.name_ko || member.form.title || member.form.saved_name;
 }
 
 export interface Plan {

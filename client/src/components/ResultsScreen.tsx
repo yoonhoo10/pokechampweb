@@ -26,7 +26,7 @@ export function ResultsScreen({ result, coreSavedNames, onOpenDetail }: Props) {
                 {opt.members.map((m) => (
                   <div key={m.form.saved_name} className={`mini ${coreSet.has(m.form.saved_name) ? 'core' : ''}`}>
                     {m.form.image_path && <img src={m.form.image_path} alt={m.form.saved_name} loading="lazy" />}
-                    <div className="mn">{m.form.title || m.form.saved_name}</div>
+                    <div className="mn">{m.form.name_ko || m.form.title || m.form.saved_name}</div>
                   </div>
                 ))}
               </div>

@@ -15,12 +15,14 @@ export interface PokemonForm {
   spe: number;
   total: number;
   image_path: string | null;
+  name_ko?: string; // 한국어 표시명 (종족+폼)
 }
 
 export interface UsageRow {
   category: string; // move / item / ability / nature / spread / teammate
   rank: number;
   name: string;
+  name_ko?: string; // 한국어 표시명
   percentage: number | null;
 }
 

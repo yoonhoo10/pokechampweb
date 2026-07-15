@@ -36,7 +36,7 @@ function MemberCard({ m, isCore }: { m: RecommendedMember; isCore: boolean }) {
       </div>
       <div>
         <h4>
-          {m.form.title || m.form.saved_name}
+          {m.form.name_ko || m.form.title || m.form.saved_name}
           {isCore && <span className="core-badge">코어</span>}
         </h4>
         <div className="reason">{m.reason}</div>
@@ -48,7 +48,7 @@ function MemberCard({ m, isCore }: { m: RecommendedMember; isCore: boolean }) {
               {m.moves.length === 0 && <span className="alt">데이터 없음</span>}
               {m.moves.map((mv) => (
                 <span className="move-chip" key={mv.name}>
-                  {mv.name} <span className="pct">{pct(mv.percentage)}</span>
+                  {mv.name_ko || mv.name} <span className="pct">{pct(mv.percentage)}</span>
                 </span>
               ))}
             </div>
@@ -59,10 +59,11 @@ function MemberCard({ m, isCore }: { m: RecommendedMember; isCore: boolean }) {
             <div className="val">
               {m.ability ? (
                 <>
-                  <strong>{m.ability.name}</strong> <span className="pct">{pct(m.ability.percentage)}</span>
+                  <strong>{m.ability.name_ko || m.ability.name}</strong>{' '}
+                  <span className="pct">{pct(m.ability.percentage)}</span>
                   {m.abilityAlternatives.length > 0 && (
                     <div className="alt">
-                      대안: {m.abilityAlternatives.map((a) => `${a.name} (${pct(a.percentage)})`).join(', ')}
+                      대안: {m.abilityAlternatives.map((a) => `${a.name_ko || a.name} (${pct(a.percentage)})`).join(', ')}
                     </div>
                   )}
                 </>
@@ -75,7 +76,7 @@ function MemberCard({ m, isCore }: { m: RecommendedMember; isCore: boolean }) {
           <div className="box">
             <div className="label">성격 / 노력치</div>
             <div className="val">
-              {m.nature ? <strong>{m.nature.name}</strong> : <span className="alt">성격 데이터 없음</span>}
+              {m.nature ? <strong>{m.nature.name_ko || m.nature.name}</strong> : <span className="alt">성격 데이터 없음</span>}
               <div className="alt">
                 노력치(사용률 1위): {m.spread ? m.spread.name : '데이터 없음'}
                 <br />
@@ -89,7 +90,7 @@ function MemberCard({ m, isCore }: { m: RecommendedMember; isCore: boolean }) {
             <div className="val">
               {m.item ? (
                 <>
-                  <strong>{m.item.name}</strong> <span className="pct">{pct(m.item.percentage)}</span>
+                  <strong>{m.item.name_ko || m.item.name}</strong> <span className="pct">{pct(m.item.percentage)}</span>
                 </>
               ) : (
                 <span className="alt">데이터 없음</span>

@@ -5,6 +5,7 @@
  */
 import { db, initSchema, tx } from './db.js';
 import { seedStatic } from './seed.js';
+import { runI18n } from './i18n.js';
 
 const API = 'https://championsbattledata.com/api';
 const ASSET_BASE = 'https://championsbattledata.com';
@@ -208,6 +209,10 @@ export async function runEtl() {
   console.log('  usage rows:', counts);
   console.timeEnd('ETL');
   console.log('ETL 완료.');
+
+  // 한국어 이름 매핑 수집 (PokeAPI). ETL 데이터가 채워진 뒤 실행되어야 함.
+  console.log('\n[i18n] 한국어 이름 매핑 수집...');
+  await runI18n();
 }
 
 // CLI로 직접 실행할 때만 수행 (import 시에는 실행 안 함)

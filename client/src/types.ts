@@ -7,12 +7,14 @@ export interface ListItem {
   type2: string | null;
   total: number;
   image_path: string | null;
+  name_ko?: string;
 }
 
 export interface UsageRow {
   category?: string;
   rank: number;
   name: string;
+  name_ko?: string;
   percentage: number | null;
 }
 
@@ -32,6 +34,7 @@ export interface PokemonForm {
   total: number;
   image_path: string | null;
   abilities: string[];
+  name_ko?: string;
 }
 
 export interface RecommendedMember {
