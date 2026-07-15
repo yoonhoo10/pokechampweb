@@ -2,6 +2,14 @@
 
 코어 포켓몬 1~3마리를 선택하면 실전 사용률 데이터를 바탕으로 **나머지 파티원 · 기술 · 특성 · 노력치/성격 · 아이템 · 운용 플랜**을 추천하는 웹 앱입니다. (싱글 배틀)
 
+## 🔗 라이브 데모
+
+**https://pokechampweb.onrender.com**
+
+별도 설치 없이 위 링크로 바로 사용할 수 있습니다.
+
+> ⏳ Render 무료 플랜이라 일정 시간 접속이 없으면 서버가 잠들어요. 첫 접속은 깨어나는 데 30초~1분 정도 걸릴 수 있습니다(이후엔 빠릅니다).
+
 > 본 서비스는 비공식이며 Pokémon, Nintendo, Creatures Inc., GAME FREAK, The Pokémon Company와 무관합니다.
 > Battle data provided by Pokémon Champions Battle Data (https://championsbattledata.com/)
 
@@ -17,11 +25,13 @@
 > 네이티브 컴파일이 필요 없는 Node 24 내장 `node:sqlite` 모듈로 대체했습니다.
 > 실행 시 `--experimental-sqlite` 플래그가 필요합니다(각 npm 스크립트에 포함됨).
 
-## 사전 요구사항
+## 로컬 개발
+
+> 일반 사용은 위 [라이브 데모](#-라이브-데모) 링크만으로 충분합니다. 아래는 **코드를 수정·개발할 때만** 필요한 로컬 실행 방법입니다.
+
+### 사전 요구사항
 
 - Node.js 22.5+ (권장 24+, `node:sqlite` 사용)
-
-## 설치 & 실행
 
 ### 1) 백엔드
 
