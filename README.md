@@ -68,25 +68,22 @@ npm run dev     # http://localhost:5173  (/api 요청은 4000으로 프록시)
 5. 기술/특성/성격/노력치/아이템은 사용률 순위 그대로 노출
 6. `move_tags` + 종족값으로 리드/스피드컨트롤/윈컨디션 플랜 텍스트 생성
 
-## 배포 (Railway / Render 통합)
+## 배포 (Render)
 
 프론트(정적 빌드)와 백엔드(Express)를 **하나의 웹 서비스**로 배포합니다.
 루트 `package.json`이 `build`(client·server 설치 → 프론트 빌드 → ETL로 `data.db` 생성)와
 `start`(Express 실행, 프론트도 같은 서버가 서빙)를 대신 처리합니다.
 
 > `data.db`는 배포 시 build 단계에서 새로 생성되며, 비어 있으면 서버 첫 부팅 때 자동으로 ETL이 1회 돕니다(작업용 캐시).
+> ETL 마지막에 i18n(PokeAPI 한국어 이름 매핑)까지 자동 수집합니다.
 
 ### Render
 1. GitHub에 저장소 push
 2. Render → **New +** → **Blueprint** → 저장소 선택 (루트 `render.yaml` 자동 인식)
 3. 배포 완료 후 부여된 URL 접속
+4. 이후 `main` 브랜치에 push하면 자동 재배포
 
-### Railway
-1. GitHub에 저장소 push
-2. Railway → **New Project** → **Deploy from GitHub repo** (루트 `railway.json` 인식)
-3. 배포 완료 후 도메인 생성(**Settings → Networking → Generate Domain**)
-
-- 두 플랫폼 모두 `PORT` 환경변수를 자동 주입 → 서버가 이를 사용 (`process.env.PORT`)
+- `PORT` 환경변수를 자동 주입 → 서버가 이를 사용 (`process.env.PORT`)
 - Node 22.5+ 필요 (`engines` 및 `render.yaml`의 `NODE_VERSION`에 명시)
 - 로컬 통합 실행 테스트: `npm run build && npm start`
 
