@@ -23,7 +23,12 @@ export function ResultsScreen({ result, coreSavedNames, onOpenDetail }: Props) {
                 {opt.label}
                 {opt.plan?.archetype && <span className="archetype-badge">{opt.plan.archetype.label}</span>}
               </h3>
-              <p className="note">6마리 구성 · 코어 {coreSavedNames.length}마리 포함</p>
+              <p className="note">
+                6마리 구성 ·{' '}
+                {coreSavedNames.length > 0
+                  ? `코어 ${coreSavedNames.length}마리 포함`
+                  : '완전 무작위 편성'}
+              </p>
 
               <div className="team-row">
                 {opt.members.map((m) => (

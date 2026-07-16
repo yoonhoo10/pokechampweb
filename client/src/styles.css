@@ -84,6 +84,13 @@ button:active { transform: translateY(1px); }
 .slot .rm { margin-left: auto; background: transparent; color: var(--muted); padding: 2px 6px; font-size: 16px; }
 .slot .placeholder { color: var(--muted); font-size: 13px; }
 
+/* 랜덤으로 시작하기 액션 */
+.random-actions {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.random-actions .ra-label { color: var(--muted); font-size: 13px; font-weight: 600; }
+
 .search {
   width: 100%; padding: 12px 16px; font-size: 15px;
   background: var(--panel); border: 1px solid var(--border);

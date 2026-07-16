@@ -1,7 +1,7 @@
 /** API 라우트 */
 import { Router } from 'express';
 import { listForms, getForm, getUsage } from '../services/repo.js';
-import { recommendParties } from '../services/recommendService.js';
+import { recommendParties, recommendRandomParty } from '../services/recommendService.js';
 
 export const api = Router();
 
@@ -43,6 +43,15 @@ api.post('/recommend', (req, res) => {
   try {
     const result = recommendParties(cores.map(String));
     res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: (e as Error).message });
+  }
+});
+
+/** 완전 무작위 6마리 파티 추천 (코어 선택 없음) */
+api.post('/random-party', (_req, res) => {
+  try {
+    res.json(recommendRandomParty());
   } catch (e) {
     res.status(400).json({ error: (e as Error).message });
   }

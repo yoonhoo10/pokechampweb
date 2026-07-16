@@ -5,11 +5,12 @@ import { TypeRow } from './TypeBadge';
 
 interface Props {
   onRecommend: (cores: ListItem[]) => void;
+  onRandomParty: () => void;
 }
 
 const MAX = 3;
 
-export function SelectScreen({ onRecommend }: Props) {
+export function SelectScreen({ onRecommend, onRandomParty }: Props) {
   const [list, setList] = useState<ListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +39,13 @@ export function SelectScreen({ onRecommend }: Props) {
   }, [list, query]);
 
   const isSelected = (p: ListItem) => selected.some((s) => s.saved_name === p.saved_name);
+
+  // 목록에서 무작위 1마리를 코어로 골라 바로 추천 실행
+  const pickRandomCore = () => {
+    if (list.length === 0) return;
+    const pick = list[Math.floor(Math.random() * list.length)];
+    onRecommend([pick]);
+  };
 
   const toggle = (p: ListItem) => {
     if (isSelected(p)) {
@@ -86,6 +94,16 @@ export function SelectScreen({ onRecommend }: Props) {
           onClick={() => onRecommend(selected)}
         >
           파티 추천 받기 ({selected.length}/{MAX})
+        </button>
+      </div>
+
+      <div className="random-actions">
+        <span className="ra-label">🎲 랜덤으로 시작하기</span>
+        <button className="btn-ghost" onClick={pickRandomCore} disabled={list.length === 0}>
+          랜덤 코어로 파티 추천
+        </button>
+        <button className="btn-ghost" onClick={onRandomParty}>
+          6마리 완전 랜덤 파티
         </button>
       </div>
 

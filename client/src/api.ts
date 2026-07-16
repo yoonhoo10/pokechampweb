@@ -26,3 +26,13 @@ export async function recommend(cores: string[]): Promise<RecommendResult> {
   }
   return res.json();
 }
+
+/** 6마리 완전 랜덤 파티 생성 (코어 없음) */
+export async function randomParty(): Promise<RecommendResult> {
+  const res = await fetch('/api/random-party', { method: 'POST' });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `랜덤 파티 생성 실패: ${res.status}`);
+  }
+  return res.json();
+}

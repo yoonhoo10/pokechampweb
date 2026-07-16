@@ -143,6 +143,32 @@ export function listForms(): ListItem[] {
   return out;
 }
 
+/**
+ * 선택 화면 목록(장식폼 통합)과 동일한 대표 폼 집합에서 무작위 n마리를 뽑는다.
+ * 같은 base_name(종족)이 두 번 뽑히지 않도록 종족 단위로 중복을 배제한다.
+ * (완전 랜덤 파티 기능용)
+ */
+export function getRandomForms(n: number): FormWithAbilities[] {
+  const items = listForms(); // 이미 장식폼 통합 + ㄱㄴㄷ 정렬됨
+  // Fisher–Yates 셔플 (원본 훼손 방지용 복사본)
+  const shuffled = items.slice();
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  const picked: FormWithAbilities[] = [];
+  const usedBases = new Set<string>();
+  for (const it of shuffled) {
+    if (usedBases.has(it.base_name)) continue; // 같은 종족 중복 방지
+    const form = getForm(it.saved_name);
+    if (!form) continue;
+    usedBases.add(it.base_name);
+    picked.push(form);
+    if (picked.length >= n) break;
+  }
+  return picked;
+}
+
 /** 모든 폼의 요약(추천 후보 풀). 특성 포함 여부 옵션 */
 export function getAllFormsForScoring(): PokemonForm[] {
   return (db.prepare(`SELECT * FROM pokemon_forms`).all() as PokemonForm[]).map(toBaseStats);

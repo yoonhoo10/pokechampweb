@@ -3,7 +3,7 @@ import { SelectScreen } from './components/SelectScreen';
 import { ResultsScreen } from './components/ResultsScreen';
 import { DetailScreen } from './components/DetailScreen';
 import { Footer } from './components/Footer';
-import { recommend } from './api';
+import { recommend, randomParty } from './api';
 import type { ListItem, RecommendResult, PartyOption } from './types';
 
 type View = 'select' | 'results' | 'detail';
@@ -24,6 +24,21 @@ export default function App() {
       const r = await recommend(names);
       setResult(r);
       setCores(names);
+      setView('results');
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRandomParty = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const r = await randomParty();
+      setResult(r);
+      setCores([]); // 완전 랜덤은 코어가 없음
       setView('results');
     } catch (e) {
       setError((e as Error).message);
@@ -58,7 +73,7 @@ export default function App() {
             </button>
           )}
           <span className="crumbs">
-            선택한 코어: {cores.join(', ') || '-'}
+            {cores.length > 0 ? `선택한 코어: ${cores.join(', ')}` : '🎲 완전 랜덤 파티'}
           </span>
         </div>
       )}
@@ -72,7 +87,9 @@ export default function App() {
         </div>
       )}
 
-      {!loading && view === 'select' && <SelectScreen onRecommend={handleRecommend} />}
+      {!loading && view === 'select' && (
+        <SelectScreen onRecommend={handleRecommend} onRandomParty={handleRandomParty} />
+      )}
       {!loading && view === 'results' && result && (
         <ResultsScreen result={result} coreSavedNames={cores} onOpenDetail={openDetail} />
       )}

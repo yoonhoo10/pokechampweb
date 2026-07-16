@@ -1,7 +1,7 @@
 /** 파티 구축 추천 알고리즘 */
 import type { PokemonForm, RecommendedMember, PartyOption, Role } from '../types.js';
 import {
-  getForm, getUsage, getTeammates, getAllFormsForScoring, buildNameIndex,
+  getForm, getUsage, getTeammates, getAllFormsForScoring, buildNameIndex, getRandomForms,
 } from './repo.js';
 import {
   teamWeaknessProfile, topThreats, coverageScore, stackedWeaknessPenalty,
@@ -149,6 +149,8 @@ function enrichMember(form: PokemonForm, isCore: boolean, source: string): Recom
     reason = '사용자가 선택한 코어 포켓몬입니다.';
   } else if (source === 'teammate') {
     reason = '실전 데이터에서 코어와 함께 자주 채용되는 팀메이트입니다.';
+  } else if (source === 'random') {
+    reason = '완전 무작위로 편성된 파티원입니다.';
   } else {
     reason = '코어의 공유 약점을 방어적으로 보완하는 상성 커버 포켓몬입니다.';
   }
@@ -164,6 +166,14 @@ function enrichMember(form: PokemonForm, isCore: boolean, source: string): Recom
     item,
     reason,
   };
+}
+
+/** 약점 프로필로 "주의 타입" 안내 문구 생성 */
+function buildCoverageNote(weaknessProfile: Record<string, number>): string {
+  const remaining = topThreats(weaknessProfile, 2);
+  return remaining.length > 0
+    ? `주의 타입: ${remaining.slice(0, 4).map(koType).join(', ')} (2마리 이상이 약점)`
+    : '2마리 이상이 공유하는 뚜렷한 약점이 없습니다. 상성 밸런스가 안정적입니다.';
 }
 
 export interface RecommendResult {
@@ -193,21 +203,40 @@ export function recommendParties(coreSavedNames: string[]): RecommendResult {
       enrichMember(f, i < cores.length, sourceByBase.get(f.base_name) || 'core')
     );
     const weaknessProfile = teamWeaknessProfile(team);
-    const remaining = topThreats(weaknessProfile, 2);
-    const coverageNote =
-      remaining.length > 0
-        ? `주의 타입: ${remaining.slice(0, 4).map(koType).join(', ')} (2마리 이상이 약점)`
-        : '2마리 이상이 공유하는 뚜렷한 약점이 없습니다. 상성 밸런스가 안정적입니다.';
 
     options.push({
       id: preset.id,
       label: preset.label,
       members,
       weaknessProfile,
-      coverageNote,
+      coverageNote: buildCoverageNote(weaknessProfile),
       plan: buildPlan(members, new Set(cores.map((c) => c.saved_name))),
     });
   }
 
   return { cores: cores.map((c) => c.saved_name), season: 'Current', options };
+}
+
+/**
+ * 완전 무작위 파티: 6마리를 무작위로 뽑아 그대로 편성한다.
+ * 파티 구축 알고리즘을 돌리지 않고, 각 멤버의 기술/특성/노력치와 운용 플랜만 채운다.
+ * 코어가 없으므로 buildPlan에는 빈 집합을 넘긴다(코어 활용 전략 섹션은 생략됨).
+ */
+export function recommendRandomParty(): RecommendResult {
+  const team = getRandomForms(TEAM_SIZE);
+  if (team.length === 0) throw new Error('포켓몬 데이터가 없습니다.');
+
+  const members = team.map((f) => enrichMember(f, false, 'random'));
+  const weaknessProfile = teamWeaknessProfile(team);
+
+  const option: PartyOption = {
+    id: 'random',
+    label: '🎲 완전 랜덤 파티',
+    members,
+    weaknessProfile,
+    coverageNote: buildCoverageNote(weaknessProfile),
+    plan: buildPlan(members, new Set()),
+  };
+
+  return { cores: [], season: 'Current', options: [option] };
 }
