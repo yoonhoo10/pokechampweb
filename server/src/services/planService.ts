@@ -1,5 +1,5 @@
 /** 파티 운용 플랜 텍스트 생성 (move_tags + ability_tags + 종족값 근사)
- *  팀 아키타입(재생력 사이클/날씨/트릭룸/벽깔이 스윕/해저드 도배/스톨/밸런스 스윕)을
+ *  팀 아키타입(재생력 사이클/날씨/트릭룸/벽깔이 스윕/함정 도배/지구전/밸런스 스윕)을
  *  감지해 코어 활용 전략과 아키타입별 승리 플랜을 만든다. */
 import { db } from '../db.js';
 import type { RecommendedMember, Role } from '../types.js';
@@ -171,7 +171,7 @@ export function buildPlan(members: RecommendedMember[], coreNames: Set<string>):
 
   const chosen = scores.sort((a, b) => b.score - a.score)[0].id;
 
-  // 아키타입별 라벨/설명/윈컨디션
+  // 아키타입별 라벨/설명/승리 플랜
   let archetype: Plan['archetype'];
   let winConditions: string[] = [];
 
@@ -195,7 +195,7 @@ export function buildPlan(members: RecommendedMember[], coreNames: Set<string>):
         '상대 날씨 세터를 견제해 날씨 주도권을 유지하는 것이 승패의 핵심입니다.',
       ];
       if (hazardSetters.length)
-        winConditions.push(`${join(names(hazardSetters), '해저드 세터')}의 해저드로 상대 교체를 압박하며 날씨 턴을 벌 수 있습니다.`);
+        winConditions.push(`${join(names(hazardSetters), '함정 세터')}의 함정으로 상대 교체를 압박하며 날씨 턴을 벌 수 있습니다.`);
       break;
     }
     case 'trick_room': {
@@ -215,13 +215,13 @@ export function buildPlan(members: RecommendedMember[], coreNames: Set<string>):
       archetype = {
         id: chosen,
         label: '재생력 사이클 팟',
-        description: '재생력 받이와 피벗 기술로 교체 사이클을 돌리며, 해저드·상태이상으로 상대를 서서히 깎는 소모전 팀입니다.',
+        description: '재생력 받이와 피벗 기술로 교체 사이클을 돌리며, 함정·상태이상으로 상대를 서서히 깎는 소모전 팀입니다.',
       };
       winConditions = [
         `${via(join(names(regenerators), '재생력 받이'))} 상대 어태커를 반복 흡수하고 체력을 회복하며 유리한 대면을 강요합니다.`,
       ];
       if (hazardSetters.length)
-        winConditions.push(`${join(names(hazardSetters), '해저드 세터')}의 해저드로 교체마다 상대를 깎아 소모전 우위를 굳힙니다.`);
+        winConditions.push(`${join(names(hazardSetters), '함정 세터')}의 함정으로 교체마다 상대를 깎아 소모전 우위를 굳힙니다.`);
       winConditions.push(`상대 주력이 소모되면 ${via(join(names(topAttackers), '에이스'))} 마무리 스윕합니다.`);
       break;
     }
@@ -240,26 +240,26 @@ export function buildPlan(members: RecommendedMember[], coreNames: Set<string>):
     case 'hazard_stack': {
       archetype = {
         id: chosen,
-        label: '해저드 도배 팟',
-        description: '스텔스록·압정뿌리기 등 진입 데미지를 여러 겹 깔아, 교체마다 상대를 깎는 팀입니다.',
+        label: '함정 도배 팟',
+        description: '스텔스록·압정뿌리기 등 진입 함정을 여러 겹 깔아, 교체마다 상대를 깎는 팀입니다.',
       };
       winConditions = [
-        `${via(join(names(hazardSetters), '해저드 세터'))} 해저드를 여러 겹 깔아 상대 교체를 강하게 압박합니다.`,
+        `${via(join(names(hazardSetters), '함정 세터'))} 함정을 여러 겹 깔아 상대 교체를 강하게 압박합니다.`,
       ];
       if (hazardRemovers.length)
-        winConditions.push(`${via(join(names(hazardRemovers), '해저드 제거원'))} 아군 필드는 정리하며 해저드 우위를 유지합니다.`);
-      winConditions.push(`해저드 데미지가 누적되면 ${join(names(topAttackers), '에이스')}의 공격 한 방이 확정타로 들어가 스윕으로 이어집니다.`);
+        winConditions.push(`${via(join(names(hazardRemovers), '함정 제거원'))} 아군 필드는 정리하며 함정 우위를 유지합니다.`);
+      winConditions.push(`함정 데미지가 누적되면 ${join(names(topAttackers), '에이스')}의 공격 한 방이 확정타로 들어가 스윕으로 이어집니다.`);
       break;
     }
     case 'stall': {
       archetype = {
         id: chosen,
-        label: '스톨(받이) 팟',
-        description: '높은 내구와 회복기로 버티며, 해저드·상태이상 등 지속 데미지로 상대를 서서히 눕히는 지구전 팀입니다.',
+        label: '지구전(받이) 팟',
+        description: '높은 내구와 회복기로 버티며, 함정·상태이상 등 지속 데미지로 상대를 서서히 눕히는 지구전 팀입니다.',
       };
       winConditions = [
         `${subj(join(names(bulky), '받이'))} 회복기로 버티며 상대 공격을 무력화합니다.`,
-        '해저드·독·화상 등 지속 데미지로 상대를 하나씩 눕혀 물량 우위로 승리합니다.',
+        '함정·독·화상 등 지속 데미지로 상대를 하나씩 눕혀 물량 우위로 승리합니다.',
       ];
       break;
     }
@@ -276,18 +276,18 @@ export function buildPlan(members: RecommendedMember[], coreNames: Set<string>):
     }
   }
 
-  // 해저드 / 스피드 컨트롤 목록
+  // 함정 / 스피드 컨트롤 목록
   const hazards = names(hazardSetters);
   const speedControl = names(speedCtrl);
 
-  // 리드 추천: 아키타입 우선 → hazard_set → pivot → 최고 스피드
+  // 선봉 추천: 아키타입 우선 → hazard_set → pivot → 최고 스피드
   let lead: Plan['lead'] = null;
   if (chosen === 'weather' && weather) {
     lead = { name: weather.setter, reason: `개막에 ${WEATHER_KO[weather.kind]} 날씨를 켜 팀의 전개 기반을 마련합니다.` };
   } else if (chosen === 'trick_room' && trSetters.length) {
     lead = { name: displayName(trSetters[0].m), reason: '개막에 트릭룸을 전개해 스피드를 역전시키고 저속 어태커의 활로를 엽니다.' };
   } else if (hazardSetters.length) {
-    lead = { name: displayName(hazardSetters[0].m), reason: '개막에 스텔스록/스파이크 등 진입 데미지를 깔아 상대 교체를 압박할 수 있습니다.' };
+    lead = { name: displayName(hazardSetters[0].m), reason: '개막에 스텔스록/스파이크 등 진입 함정을 깔아 상대 교체를 압박할 수 있습니다.' };
   } else if (pivots.length) {
     lead = { name: displayName(pivots[0].m), reason: 'U턴/볼트체인지 등 피벗 기술로 유리한 대면을 만들며 주도권을 잡기 좋습니다.' };
   } else {
@@ -303,7 +303,7 @@ export function buildPlan(members: RecommendedMember[], coreNames: Set<string>):
   // 코어 활용 전략
   const setupMeans: string[] = [];
   if (screenSetters.length) setupMeans.push('벽');
-  if (hazardSetters.length) setupMeans.push('해저드');
+  if (hazardSetters.length) setupMeans.push('함정');
   if (speedCtrl.length || trSetters.length) setupMeans.push('스피드 컨트롤');
   const setupPhrase = setupMeans.length ? `${setupMeans.join('/')}로 기점이 마련되면` : '상대 위협을 정리한 뒤';
 
@@ -319,7 +319,7 @@ export function buildPlan(members: RecommendedMember[], coreNames: Set<string>):
       } else if (p.abilityTags.has('regenerator')) {
         strategy = '재생력 받이 축입니다. 피벗·교체로 체력을 회복하며 상대 어태커를 반복해서 받아냅니다.';
       } else if (p.moveTags.has('hazard_set')) {
-        strategy = '개막 리드로 스텔스록 등 해저드를 깔아 상대 교체를 압박하고 기점을 마련합니다.';
+        strategy = '개막 선봉으로 스텔스록 등 함정을 깔아 상대 교체를 압박하고 기점을 마련합니다.';
       } else if (p.moveTags.has('screen_set')) {
         strategy = '리플렉터·오로라베일 등으로 벽을 세워 아군의 셋업·스윕이 지나갈 기점을 만듭니다.';
       } else if (hasMove(p.m, 'Trick Room')) {
@@ -343,8 +343,8 @@ export function buildPlan(members: RecommendedMember[], coreNames: Set<string>):
 
   // 요약
   const parts: string[] = [`이 파티는 '${archetype.label}' 성향입니다. ${archetype.description}`];
-  if (lead) parts.push(`리드로는 ${obj(lead.name)} 추천합니다.`);
-  if (hazards.length) parts.push(`진입 데미지(해저드)는 ${subj(hazards.join(', '))} 담당합니다.`);
+  if (lead) parts.push(`선봉으로는 ${obj(lead.name)} 추천합니다.`);
+  if (hazards.length) parts.push(`진입 함정은 ${subj(hazards.join(', '))} 담당합니다.`);
   if (speedControl.length) parts.push(`스피드 컨트롤 수단으로 ${obj(speedControl.join(', '))} 활용할 수 있습니다.`);
   else parts.push('전용 스피드 컨트롤 기술이 적으므로, 스카프/우선도 기술로 속도 열세를 보완하는 것을 고려하세요.');
 

@@ -156,22 +156,22 @@ export function DetailScreen({ option, coreSavedNames }: Props) {
 
         <div className="grid2">
           <div className="pbox">
-            <div className="h">추천 리드</div>
+            <div className="h">추천 선봉</div>
             {plan.lead ? (
               <div style={{ fontSize: 13 }}>
                 <strong>{plan.lead.name}</strong>
                 <div className="alt" style={{ marginTop: 4 }}>{plan.lead.reason}</div>
               </div>
             ) : (
-              <div className="empty">추천 리드 없음</div>
+              <div className="empty">추천 선봉 없음</div>
             )}
           </div>
           <div className="pbox">
-            <div className="h">진입 데미지 (해저드)</div>
+            <div className="h">진입 함정</div>
             {plan.hazards.length ? (
               <ul>{plan.hazards.map((h) => <li key={h}>{h}</li>)}</ul>
             ) : (
-              <div className="empty">해저드 세터가 없습니다.</div>
+              <div className="empty">함정 세터가 없습니다.</div>
             )}
           </div>
           <div className="pbox">
@@ -183,7 +183,7 @@ export function DetailScreen({ option, coreSavedNames }: Props) {
             )}
           </div>
           <div className="pbox">
-            <div className="h">윈 컨디션</div>
+            <div className="h">승리 플랜</div>
             {plan.winConditions.length ? (
               <ul>{plan.winConditions.map((w, i) => <li key={i}>{w}</li>)}</ul>
             ) : (
