@@ -205,7 +205,7 @@ export function recommendParties(coreSavedNames: string[]): RecommendResult {
       members,
       weaknessProfile,
       coverageNote,
-      plan: buildPlan(members),
+      plan: buildPlan(members, new Set(cores.map((c) => c.saved_name))),
     });
   }
 

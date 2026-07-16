@@ -52,6 +52,15 @@
 | `recovery` | Recover, Roost, Slack Off, Synthesis, Moonlight, Wish |
 | `pivot` | U-turn, Volt Switch, Flip Turn, Teleport, Baton Pass |
 
+3. **전략 특성 태그** — 팀 아키타입 판단용 소규모 특성 큐레이션 맵 (`server/src/data/abilityTags.ts`의 `ABILITY_TAGS`). 특성명은 API 원본대로 **영어 title-case**. move_tags와 달리 **DB에 넣지 않고** `planService`에서 런타임 분류에만 사용 (특성은 이미 `pokemon_abilities`/사용률 row에 있음).
+
+| 태그 | 특성 |
+|---|---|
+| `weather_rain/sun/sand/snow` | Drizzle / Drought·Orichalcum Pulse / Sand Stream / Snow Warning |
+| `regenerator` | Regenerator |
+| `weather_abuser` | Swift Swim, Chlorophyll, Sand Rush, Slush Rush, Sand Force, Solar Power |
+| `setup_sweeper` | Speed Boost, Protean, Libero, Moody |
+
 > ⚠️ 기술의 타입/분류/위력 등 상세 스펙 정적 테이블은 **MVP에서 의도적으로 생략**. 기술 추천은 API의 사용률 순위(rank+percentage)만 그대로 노출하고, "왜 이 기술인지"에 대한 설명 근거는 MVP 이후 과제.
 
 ---
@@ -173,10 +182,24 @@ CREATE TABLE name_i18n (
 ### 4. 성격/노력치 추천
 - `category='nature'` 1위, `category='spread'` 1위 문자열 그대로 노출
 
-### 5. 파티 플랜 생성
-- `move_tags` 매핑으로 각 멤버 기술 중 리드 후보(hazard_set 등), 스피드 컨트롤 여부(speed_control) 판별
+### 5. 파티 플랜 생성 (`server/src/services/planService.ts`의 `buildPlan(members, coreNames)`)
+멤버별로 `move_tags`(기술)와 `ABILITY_TAGS`(특성 — 사용률 1위 특성 우선, 없으면 보유 특성) 태그 + 역할(`inferRoles`) + 종족값을 집계해 팀 시그널을 만들고, 이를 스코어링해 **팀 아키타입 1개**를 선택한다. 미달 시 `balance_sweep` 폴백.
+
+| 아키타입 | 트리거(요지) |
+|---|---|
+| `weather` | 날씨 세터(특성 `weather_*` 또는 날씨 기술) 존재 |
+| `trick_room` | Trick Room 기술 + 저속고화력(spe≤60 & off≥100) 2마리+ |
+| `regen_cycle` | 재생력 2마리+, 또는 재생력 1 + 피벗 2마리+ |
+| `screen_offense` | 스크린 세터 1+ & 스위퍼 2마리+ |
+| `hazard_stack` | 해저드 세터 2마리+ |
+| `stall` | 내구(Wall/Tank/Support) 3+ & 회복기 2+ & 스위퍼 ≤1 |
+| `balance_sweep` | 폴백 (고화력 어태커 2마리 스윕) |
+
+- **코어 활용 전략**(`coreStrategies`): `coreNames`로 코어를 식별해, 각 코어의 태그/특성/역할을 아키타입 맥락에서 1문장으로 서술 (날씨세터→재생력→해저드→스크린→트릭룸→스피드컨트롤→피벗→스위퍼→받이→밸런스 우선순위). **코어가 받이·세터여도 플랜에 반드시 등장**한다(이전엔 어태커만 뽑혀 코어가 누락됐음).
+- **윈 컨디션**: 아키타입별로 다른 시나리오 텍스트 생성 (스윕 일변도 X — 사이클/스톨/날씨/도배 등). 리드/해저드/스피드컨트롤 목록과 요약(summary)도 아키타입 인식.
 - base spe 비교로 근사 스피드 서열 판단 (정밀 계산은 spread 파싱 이후 과제)
-- 위 정보를 조합해 "리드 추천 + 이유", "윈 컨디션 시나리오" 텍스트 템플릿 생성
+- 한글 조사(이/가·을/를·으로/로)는 받침 유무로 자동 선택(`pickJosa`/`subj`/`obj`/`via`), 이름 뒤 괄호 라벨(예: "(수컷)")은 무시하고 판정
+- 반환 타입 `Plan`(planService) = `PartyOption.plan`(server `types.ts`) = `PartyPlan`(client `types.ts`) 3곳 수기 미러이므로 필드 추가 시 함께 동기화. 상세 화면은 아키타입 배지 + 코어 전략 박스, 결과 비교 카드는 아키타입 배지를 노출
 
 ---
 

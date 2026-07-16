@@ -19,7 +19,10 @@ export function ResultsScreen({ result, coreSavedNames, onOpenDetail }: Props) {
           const hasThreat = opt.coverageNote.includes('주의');
           return (
             <div className="option" key={opt.id}>
-              <h3>{opt.label}</h3>
+              <h3>
+                {opt.label}
+                {opt.plan?.archetype && <span className="archetype-badge">{opt.plan.archetype.label}</span>}
+              </h3>
               <p className="note">6마리 구성 · 코어 {coreSavedNames.length}마리 포함</p>
 
               <div className="team-row">

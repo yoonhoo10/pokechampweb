@@ -50,6 +50,8 @@ export interface RecommendedMember {
 }
 
 export interface PartyPlan {
+  archetype: { id: string; label: string; description: string };
+  coreStrategies: { name: string; role: string; strategy: string }[];
   lead: { name: string; reason: string } | null;
   speedControl: string[];
   hazards: string[];

@@ -133,8 +133,27 @@ export function DetailScreen({ option, coreSavedNames }: Props) {
 
       {/* 운용 플랜 */}
       <div className="plan">
-        <h3>🎯 파티 운용 플랜</h3>
+        <h3>
+          🎯 파티 운용 플랜
+          {plan.archetype && <span className="archetype-badge">{plan.archetype.label}</span>}
+        </h3>
+        {plan.archetype && <div className="archetype-desc">{plan.archetype.description}</div>}
         <div className="summary">{plan.summary}</div>
+
+        {plan.coreStrategies.length > 0 && (
+          <div className="pbox core-strategy">
+            <div className="h">코어 활용 전략</div>
+            <ul>
+              {plan.coreStrategies.map((c) => (
+                <li key={c.name}>
+                  <strong>{c.name}</strong>
+                  {c.role && <span className="cs-role"> ({c.role})</span>} — {c.strategy}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="grid2">
           <div className="pbox">
             <div className="h">추천 리드</div>
