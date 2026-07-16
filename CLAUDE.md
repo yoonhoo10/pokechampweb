@@ -27,7 +27,8 @@
 인증 불필요, 고정 rate limit 없음. 아래 엔드포인트 사용:
 
 - `GET /api` 또는 `/api/index` — 전체 포켓몬 인덱스 (= 화이트리스트 역할, 챔피언스에 실제 존재하는 포켓몬만 여기 나옴)
-- `GET /api/metadata/:base_name` — 폼별 종족값/타입/특성 (예: `/api/metadata/tauros`)
+- `GET /api/metadata/:base_name` — 폼별 능력치/타입/특성 (예: `/api/metadata/tauros`)
+  - ⚠️ 여기서 오는 `hp/atk/def/spa/spd/spe/total`은 **종족값이 아니라 레벨50 실능력치**(IV31/EV0/무보정)다. DB엔 원본 그대로 저장하고, 종족값 변환(HP-75 / 그 외 -20, total은 합 재계산)은 `repo.ts`의 `toBaseStats`에서 읽는 시점에 수행한다.
 - `GET /api/battle/:format/:saved_name?season=...` — 시즌별 사용률 데이터 (rank+percentage)
   - ⚠️ API 실제 category 이름은 스키마와 달라 ETL에서 매핑함: `held_item→item`, `stat_alignment→nature`, `stat_points→spread` (`move`/`ability`/`teammate`는 동일). `nature`는 `stat_up`/`stat_down`을, `spread`는 `*_points` 필드를 조합해 문자열로 저장.
 
@@ -122,6 +123,7 @@ CREATE TABLE name_i18n (
 - spread(노력치)는 문자열 그대로 저장 (파싱은 MVP 이후 과제, 컬럼 순서는 HP/Atk/Def/SpA/SpD/Spe로 추정되나 실제 API 응답으로 재확인 필요)
 - 시즌은 최신 1개만 유지, 갱신 시 `battle_usage_rows`를 통째로 지우고 다시 채우는 방식
 - 역할군(스위퍼/벽/서포터) 태그, 실질 스피드 계산 등은 DB에 저장하지 않고 서비스 레이어에서 요청 시 계산
+- **종족값 변환**: `pokemon_forms`의 스탯 컬럼엔 API 원본(레벨50 실능력치)이 저장돼 있고, 진짜 종족값은 읽는 시점에 `repo.ts`의 `toBaseStats`가 역산한다(HP-75 / 그 외 -20). 역할·스코어링·화면 표시 모두 이 변환된 값을 사용 (원본 저장은 "작업용 캐시" 원칙 유지, 파생값은 서비스 레이어 계산)
 - **장식 전용 폼 통합**: 색/무늬만 다른 폼(트리미앙·비비용·마휘핑·플라제스 등)은 DB에 개별 행으로 그대로 두되, **선택 화면 목록에서만 대표폼 1개로 접어서** 노출한다. DB를 건드리지 않으므로 재수집(ETL) 후에도 유지됨.
   - 판별: 한 `base_name`의 모든 폼이 타입/종족값/특성까지 완전히 동일하면 "장식 폼"으로 간주 (하드코딩 목록 아님, 데이터 기반 자동 감지 — `repo.ts`의 `cosmeticRepByBase`)
   - 대표폼: 기본형(`title === base_name`) > `form_label` 없는 것 > 첫 번째. 목록에서는 무늬 라벨을 떼고 종족명만 표시(예: "비비용")

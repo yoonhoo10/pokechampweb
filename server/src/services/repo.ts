@@ -7,6 +7,31 @@ export interface FormWithAbilities extends PokemonForm {
   abilities: string[];
 }
 
+/**
+ * championsbattledata.com metadata API는 "종족값(base stats)"이 아니라
+ * 레벨50 실능력치(IV31 / EV0 / 무보정 성격 기준)를 내려준다.
+ * 레벨50 능력치 공식을 역산하면 모든 포켓몬에 대해 정확히 상수 보정만 빼면 되므로,
+ * DB(작업용 캐시)에는 원본 값을 그대로 두고 읽는 시점에 여기서 종족값으로 되돌린다.
+ *   - HP:      base = floor((2*base+31)*50/100) + 50 + 10  → 저장값 - 75
+ *   - 그 외 5: base = floor((2*base+31)*50/100) + 5        → 저장값 - 20
+ */
+const HP_OFFSET = 75;
+const STAT_OFFSET = 20;
+const TOTAL_OFFSET = HP_OFFSET + STAT_OFFSET * 5; // 175
+
+type StatFields = Pick<PokemonForm, 'hp' | 'atk' | 'def' | 'spa' | 'spd' | 'spe' | 'total'>;
+
+/** 저장된 레벨50 실능력치를 종족값으로 되돌린다 (total은 6스탯 합으로 재계산). */
+function toBaseStats<T extends StatFields>(f: T): T {
+  const hp = f.hp - HP_OFFSET;
+  const atk = f.atk - STAT_OFFSET;
+  const def = f.def - STAT_OFFSET;
+  const spa = f.spa - STAT_OFFSET;
+  const spd = f.spd - STAT_OFFSET;
+  const spe = f.spe - STAT_OFFSET;
+  return { ...f, hp, atk, def, spa, spd, spe, total: hp + atk + def + spa + spd + spe };
+}
+
 const qForm = db.prepare(`SELECT * FROM pokemon_forms WHERE saved_name = ?`);
 const qAbilities = db.prepare(`SELECT ability_name FROM pokemon_abilities WHERE saved_name = ? ORDER BY ability_name`);
 const qUsage = db.prepare(
@@ -75,8 +100,9 @@ const cosmeticRepByBase: Map<string, string> = (() => {
 })();
 
 export function getForm(savedName: string): FormWithAbilities | null {
-  const form = qForm.get(savedName) as PokemonForm | undefined;
-  if (!form) return null;
+  const raw = qForm.get(savedName) as PokemonForm | undefined;
+  if (!raw) return null;
+  const form = toBaseStats(raw);
   const abilities = (qAbilities.all(savedName) as { ability_name: string }[]).map((r) => r.ability_name);
   return { ...form, abilities, name_ko: formKo(form.base_name, form.form_label) };
 }
@@ -103,6 +129,7 @@ export function listForms(): ListItem[] {
   const rows = qList.all() as ListItem[];
   const out: ListItem[] = [];
   for (const r of rows) {
+    r.total -= TOTAL_OFFSET; // 저장된 레벨50 능력치 총합 → 종족값 총합
     const rep = cosmeticRepByBase.get(r.base_name);
     if (rep) {
       if (r.saved_name !== rep) continue; // 장식 폼은 대표폼만 노출
@@ -111,12 +138,14 @@ export function listForms(): ListItem[] {
     r.name_ko = formKo(r.base_name, r.form_label);
     out.push(r);
   }
+  // 한글 사이트이므로 한국어 이름 기준 ㄱㄴㄷ 순으로 정렬 (한글화 안 된 항목은 뒤로 밀림)
+  out.sort((a, b) => a.name_ko.localeCompare(b.name_ko, 'ko'));
   return out;
 }
 
 /** 모든 폼의 요약(추천 후보 풀). 특성 포함 여부 옵션 */
 export function getAllFormsForScoring(): PokemonForm[] {
-  return db.prepare(`SELECT * FROM pokemon_forms`).all() as PokemonForm[];
+  return (db.prepare(`SELECT * FROM pokemon_forms`).all() as PokemonForm[]).map(toBaseStats);
 }
 
 /** 특정 saved_name의 teammate 후보 (rank 순) */

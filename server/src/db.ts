@@ -31,6 +31,8 @@ export function initSchema(): void {
       form_label    TEXT,
       type1         TEXT NOT NULL,
       type2         TEXT,
+      -- 주의: API가 주는 값은 종족값이 아니라 레벨50 실능력치(IV31/EV0/무보정)다.
+      -- 원본을 그대로 캐시하고, 종족값 변환(HP-75 / 그 외 -20)은 repo.ts의 toBaseStats에서 읽는 시점에 수행한다.
       hp INTEGER, atk INTEGER, def INTEGER, spa INTEGER, spd INTEGER, spe INTEGER, total INTEGER,
       image_path    TEXT,
       fetched_at    TEXT DEFAULT CURRENT_TIMESTAMP

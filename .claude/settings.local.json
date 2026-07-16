@@ -50,7 +50,19 @@
       "Bash(curl -s http://localhost:4100/foo)",
       "Bash(curl -s http://localhost:4100/api/pokemon)",
       "PowerShell($c = Get-NetTCPConnection -LocalPort 4100 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { Stop-Process -Id $c.OwningProcess -Force; \"포트 4100 서버 종료됨\" } else { \"포트 4100에 실행 중인 서버 없음\" })",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(node -e ' *)",
+      "Bash(node --experimental-sqlite --import tsx -e ' *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(netstat -ano)",
+      "Bash(tasklist)",
+      "Bash(node *)",
+      "Bash(grep -v \"ExperimentalWarning\\\\|--import\\\\|node:sqlite\\\\|Use \\\\`node --trace\")",
+      "Bash(git -C \"C:/Users/yoonh/OneDrive/Desktop/pokechampweb\" add CLAUDE.md server/src/services/repo.ts)",
+      "Bash(git -C \"C:/Users/yoonh/OneDrive/Desktop/pokechampweb\" status --short)",
+      "Bash(git *)"
     ]
   }
 }
